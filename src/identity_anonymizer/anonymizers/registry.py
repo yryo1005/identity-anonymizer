@@ -1,10 +1,12 @@
 from typing import Dict, Type
 
+from identity_anonymizer.anonymizers.attribute_nn import AttributeNNAnonymizer
 from identity_anonymizer.anonymizers.base import Anonymizer
 from identity_anonymizer.anonymizers.vae import VAEAnonymizer
 
 _ANONYMIZER_REGISTRY: Dict[str, Type[Anonymizer]] = {
     "vae": VAEAnonymizer,
+    "attribute_nn": AttributeNNAnonymizer,
 }
 
 

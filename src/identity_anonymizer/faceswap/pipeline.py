@@ -1,6 +1,6 @@
 import os
 import shutil
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 import cv2
 import numpy as np
@@ -69,6 +69,7 @@ class FaceAnonymizerPipeline:
         self,
         target_image_path: str,
         out_image_path: Optional[str] = None,
+        anonymizer_input: Optional[Any] = None,
         **anonymizer_kwargs,
     ) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
         """
@@ -77,7 +78,14 @@ class FaceAnonymizerPipeline:
         引数:
             target_image_path (str): 匿名化対象の画像のパス．
             out_image_path (str または None): 出力画像の保存先パス．None の場合は保存しない．
-            **anonymizer_kwargs: `Anonymizer.anonymize` に渡す追加引数(例: `noise_level`)．
+            anonymizer_input (Any または None): `Anonymizer.anonymize` に渡す入力．None の場合は
+                ターゲット画像から計算したArcFace顔ベクトル(`target_embed`)を用いる
+                (`VAEAnonymizer` 等，顔ベクトルを入力とするモデル向けの既定動作)．
+                `AttributeNNAnonymizer` のように顔ベクトル以外を入力とするモデルを使う場合は，
+                ここに直接入力(例: `{"age": 20, "gender": 0, "race": 0}`)を指定する．
+                ターゲット画像自体は，この場合も向き・表情の情報源として使われる．
+            **anonymizer_kwargs: `Anonymizer.anonymize` に渡す追加のキーワード引数
+                (例: `VAEAnonymizer` の `noise_level`)．
         戻り値:
             face_image (np.ndarray または None): 形状 (256, 256, 3) の変換後の顔画像．
             full_image (np.ndarray または None): 元画像と同じ形状の，顔部分のみ貼り替えた画像．
@@ -103,8 +111,9 @@ class FaceAnonymizerPipeline:
             set_target=False, similarity_th=0.15,
         )
 
+        anonymizer_x = target_embed if anonymizer_input is None else anonymizer_input
         with torch.no_grad():
-            source_embed = self.anonymizer.anonymize(target_embed, **anonymizer_kwargs)
+            source_embed = self.anonymizer.anonymize(anonymizer_x, **anonymizer_kwargs)
 
         resized_frs, present = resize_frames(crop_frames_list[0])
         resized_frs = np.array(resized_frs)
@@ -123,6 +132,7 @@ class FaceAnonymizerPipeline:
     def get_unified_identity_embedding(
         self,
         target_video_path: str,
+        anonymizer_input: Optional[Any] = None,
         **anonymizer_kwargs,
     ) -> Tuple[torch.Tensor, torch.Tensor, list, float]:
         """
@@ -134,7 +144,12 @@ class FaceAnonymizerPipeline:
 
         引数:
             target_video_path (str): 対象動画のパス．
-            **anonymizer_kwargs: `Anonymizer.anonymize` に渡す追加引数(例: `noise_level`)．
+            anonymizer_input (Any または None): `Anonymizer.anonymize` に渡す入力．None の場合は
+                基準フレームから計算したArcFace顔ベクトル(`target_embed`)を用いる．
+                `AttributeNNAnonymizer` のように顔ベクトル以外を入力とするモデルを使う場合は，
+                ここに直接入力(例: `{"age": 20, "gender": 0, "race": 0}`)を指定する．
+            **anonymizer_kwargs: `Anonymizer.anonymize` に渡す追加のキーワード引数
+                (例: `VAEAnonymizer` の `noise_level`)．
         戻り値:
             source_embed (torch.Tensor): 形状 (1, 512) の，動画全体で共通の匿名化後の顔ベクトル．
             target_embed (torch.Tensor): 形状 (1, 512) の，基準フレームの元の顔ベクトル．
@@ -151,8 +166,9 @@ class FaceAnonymizerPipeline:
             F.interpolate(target_norm, scale_factor=0.5, mode="bilinear", align_corners=True)
         )
 
+        anonymizer_x = target_embed if anonymizer_input is None else anonymizer_input
         with torch.no_grad():
-            source_embed = self.anonymizer.anonymize(target_embed, **anonymizer_kwargs)
+            source_embed = self.anonymizer.anonymize(anonymizer_x, **anonymizer_kwargs)
 
         return source_embed, target_embed, full_frames, fps
 
@@ -164,6 +180,7 @@ class FaceAnonymizerPipeline:
         batch_size: int = 64,
         use_sr: bool = False,
         keep_audio: bool = True,
+        anonymizer_input: Optional[Any] = None,
         **anonymizer_kwargs,
     ) -> str:
         """
@@ -182,12 +199,15 @@ class FaceAnonymizerPipeline:
                 読み込んだ場合のみ有効)．
             keep_audio (bool): 元動画の音声を出力動画にも付与するかどうか．`ffmpeg` が
                 利用できない環境では自動的に無視される．
-            **anonymizer_kwargs: `Anonymizer.anonymize` に渡す追加引数(例: `noise_level`)．
+            anonymizer_input (Any または None): `Anonymizer.anonymize` に渡す入力．
+                `get_unified_identity_embedding` を参照．
+            **anonymizer_kwargs: `Anonymizer.anonymize` に渡す追加のキーワード引数
+                (例: `VAEAnonymizer` の `noise_level`)．
         戻り値:
             out_video_path (str): 出力動画の保存先パス．
         """
         source_embed, target_embed, full_frames, fps = self.get_unified_identity_embedding(
-            target_video_path, **anonymizer_kwargs
+            target_video_path, anonymizer_input=anonymizer_input, **anonymizer_kwargs
         )
 
         crop_frames_list, tfm_array_list = crop_frames_and_get_transforms(

@@ -13,6 +13,7 @@ dist/
 # notebook実行で生成される成果物(図・評価結果・匿名化済み動画)
 outputs/
 data/processed_demo/
+data/processed_attribute_demo/
 
 # 学習済み重み(スクリプトで取得する大容量ファイル。README.md参照)
 weights/

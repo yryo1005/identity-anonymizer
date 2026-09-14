@@ -4,10 +4,10 @@
 (`Anonymizer`)を組み合わせて，動画・画像中の人物の顔を，属性(性別・年齢等)や表情を保持したまま
 架空の人物へ匿名化するパイプラインである．
 
-現在の `Anonymizer` の実装は Variational Autoencoder (VAE) によるものだが，ArcFaceの
-512次元顔ベクトルを入出力とするインターフェース(`identity_anonymizer.anonymizers.Anonymizer`)
-に従う限り，将来的に別の生成モデルへ差し替えることができる(詳細は「匿名化モデルの差し替え」を
-参照)．
+現在の `Anonymizer` には，Variational Autoencoder (VAE) による実装(`VAEAnonymizer`，提案手法)
+と，性別・年齢・人種の属性を入力とするNNによる実装(`AttributeNNAnonymizer`，従来手法2)の
+2種類がある．出力は常にArcFaceの512次元顔ベクトルに固定されるが，入力の形式はモデルごとに
+自由に設計できる(新しいモデルの実装方法は [document.md](document.md) を参照)．
 
 ## リポジトリ構成
 
@@ -24,7 +24,9 @@ identity-anonymizer/
 │   └── evaluation/           # 年齢/性別/コサイン類似度の並列評価
 ├── notebooks/                # データセット構築・学習・推論・評価用のnotebook
 ├── sample_images/, sample_videos/  # デモ用のサンプルデータ
-└── tests/                    # pytestによる単体テスト(GPU不要な純粋ロジックが対象)
+├── tests/                    # pytestによる単体テスト(GPU不要な純粋ロジックが対象)
+├── document.md                # Anonymizerサブクラスの実装ガイド(拡張方法)
+└── README.md                  # 本ファイル(セットアップ・実行方法)
 ```
 
 ## セットアップ
@@ -97,6 +99,7 @@ pip install -e .
 | `03_inference_image.ipynb` | 画像1枚に対する匿名化のデモ(ノイズレベルを変えた比較を含む) |
 | `04_inference_video.ipynb` | 動画1本に対する匿名化のデモ．動画全体で同一の匿名化後の顔ベクトルを使用し，フレーム間で人物の見た目が一貫することを確認する |
 | `05_evaluate.ipynb` | UTKFaceに対する年齢/性別/コサイン類似度の定量評価を並列実行する |
+| `06_train_attribute_nn_anonymizer.ipynb` | `AttributeNNAnonymizer`(従来手法2，属性入力型)を学習し，`VAEAnonymizer` との差し替えをデモする |
 
 `04_inference_video.ipynb` で対象とする動画は，`sample_videos/` の中身を差し替える，または
 notebook内のパスの指定を変更することで，任意の動画に変更できる．
@@ -109,34 +112,27 @@ UTKFace全件で学習・評価する場合は，[UTKFaceの配布ページ](htt
 
 ## 匿名化モデルの差し替え
 
-`identity_anonymizer.anonymizers.Anonymizer` を継承し，`anonymize(embedding, **kwargs)`
-(形状 `(B, 512)` のArcFace顔ベクトルを受け取り，同じ形状の匿名化後の顔ベクトルを返す)を実装した
-うえで，`register_anonymizer` に登録すれば，`FaceAnonymizerPipeline` 側のコードを変更せずに
-新しいモデルへ差し替えられる．
-
-```python
-from identity_anonymizer.anonymizers import Anonymizer, register_anonymizer
-
-class MyAnonymizer(Anonymizer):
-    def anonymize(self, embedding, **kwargs):
-        ...  # 独自の匿名化ロジック
-        return anonymized_embedding
-
-register_anonymizer("my_model", MyAnonymizer)
-```
+GHOSTは常にArcFaceの512次元顔ベクトルを「匿名化後の顔ベクトル」として要求するため，
+`Anonymizer` の**出力**は形状 `(B, 512)` に固定されている(`output_dim`)．一方，**入力**は
+モデルごとに異なってよい(`VAEAnonymizer` はArcFaceの顔ベクトルを，`AttributeNNAnonymizer`
+は性別・年齢・人種の属性を入力とする)．
 
 ```python
 from identity_anonymizer.faceswap import load_ghost_models, FaceAnonymizerPipeline
 from identity_anonymizer.anonymizers import get_anonymizer
 
 models = load_ghost_models()
-anonymizer = get_anonymizer("my_model")  # "vae" から差し替えるだけでよい
-pipeline = FaceAnonymizerPipeline(models, anonymizer)
+anonymizer = get_anonymizer("attribute_nn", weight_path="weights/anonymizers/attribute_nn/attribute_nn.pt")
+pipeline = FaceAnonymizerPipeline(models, anonymizer)  # "vae" から差し替えるだけでよい
+
+# 入力がArcFace顔ベクトルではないモデルは，anonymizer_input で入力を明示する
+face_image, _ = pipeline.anonymize_image(
+    "sample_images/beckham.jpg", anonymizer_input={"age": 20, "gender": 0, "race": 0},
+)
 ```
 
-学習方法(教師なし再構成，敵対的学習等)はモデルごとに異なりうるため，`Anonymizer` は学習手順を
-規定しない．新しいモデルの学習は，`02_train_vae_anonymizer.ipynb` を参考に個別のnotebookとして
-実装すること．
+新しい匿名化モデルの実装方法(`validate_input` / `_anonymize` の実装，登録方法，
+`AttributeNNAnonymizer` を例にした詳しい解説)は [document.md](document.md) を参照すること．
 
 ## 評価の並列実行
 
