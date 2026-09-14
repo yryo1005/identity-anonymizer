@@ -69,10 +69,10 @@ bash scripts/download_ghost_weights.sh
 bash scripts/download_release_weights.sh
 ```
 
-`scripts/download_release_weights.sh` は，本リポジトリのGitHub Releaseから重みを取得する．
-Release作成前は失敗するため，`RELEASE_OWNER` / `RELEASE_REPO` / `RELEASE_TAG` 環境変数で
-実際のRelease先を指定するか，Releaseにアップロードされている以下のファイルを手動でダウンロードし，
-配置すること．
+`scripts/download_release_weights.sh` は，[本リポジトリのGitHub Release
+(v1.0.0)](https://github.com/yryo1005/identity-anonymizer/releases/tag/v1.0.0)から
+以下の重みを取得する．別のRelease先を使う場合は，`RELEASE_OWNER` / `RELEASE_REPO` /
+`RELEASE_TAG` 環境変数で上書きすること．
 
 | ファイル | 配置先 |
 | :--- | :--- |
