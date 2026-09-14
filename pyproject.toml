@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "identity-anonymizer"
+version = "0.1.0"
+description = "GHOSTによる顔交換と，差し替え可能な匿名化モデル(Anonymizer)を組み合わせたアイデンティティ保持型匿名化パイプライン"
+readme = "README.md"
+requires-python = ">=3.9,<3.10"
+dependencies = [
+    "numpy",
+    "opencv-python",
+    "scikit-image",
+    "tqdm",
+    "matplotlib",
+    "pandas",
+    "psutil",
+]
+
+# torch / mxnet-cu112 / insightface / onnxruntime-gpu / kornia は
+# CUDAビルド済みwheelへの依存が強くpyproject.toml側では管理しない。
+# environment.yml (conda) を参照すること。
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

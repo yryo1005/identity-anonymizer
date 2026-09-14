@@ -1,0 +1,38 @@
+identity-anonymizer
+
+本リポジトリは，以下の第三者ソフトウェア・モデルを利用または同梱している．
+
+## GHOST (third_party/ghost)
+Copyright the GHOST authors (ai-forever/ghost, https://github.com/ai-forever/ghost)
+Licensed under the Apache License, Version 2.0.
+`src/identity_anonymizer/faceswap/` は，`third_party/ghost` を git submoduleとして参照し，
+`patches/` に記載の最小限の変更のみを加えて利用している．
+
+論文: A. Groshev, et al., "GHOST—A New Face Swap Approach for Image and Video Domains,"
+IEEE Access, vol. 10, pp.83452-83462, August 2022.
+
+## ArcFace
+`third_party/ghost/arcface_model/iresnet.py` および学習済み重み `backbone.pth` は，
+GHOSTのリリースアセットとして配布されているものを使用する．
+
+論文: J. Deng, et al., "ArcFace: Additive Angular Margin Loss for Deep Face Recognition,"
+Proc. IEEE CVPR, pp.4690-4699, June 2019.
+
+## DEX (Deep EXpectation of apparent age)
+`src/identity_anonymizer/evaluation/dex_models.py` は，DEXのVGG16ベースの年齢・性別推定モデルの
+構造を実装したものである(評価指標の算出にのみ使用し，匿名化パイプライン本体には使用しない)．
+
+論文: R. Rothe, et al., "Dex: Deep expectation of apparent age from a single image,"
+Proc. IEEE CVPR workshops, December 2015.
+
+## UTKFace
+`data/utkface_sample/` は，UTKFaceデータセットから抽出したデモ用のサンプル画像である．
+
+データセット: Z. Zhang, et al., "Age Progression/Regression by Conditional Adversarial
+Autoencoder," Proc. IEEE CVPR, 2017. (https://susanqq.github.io/UTKFace/)
+
+## 本リポジトリ独自の実装
+`src/identity_anonymizer/anonymizers/`(差し替え可能な匿名化モデルのインターフェースおよび
+VAEによる実装)，`src/identity_anonymizer/evaluation/`(並列化された定量評価)，
+`src/identity_anonymizer/data/`(データセット構築)，`notebooks/` は本プロジェクトによる
+独自の実装である．

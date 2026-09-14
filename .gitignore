@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# notebook実行で生成される成果物(図・評価結果・匿名化済み動画)
+outputs/
+data/processed_demo/
+
+# 学習済み重み(スクリプトで取得する大容量ファイル。README.md参照)
+weights/
+
+# UTKFaceのフルデータセット(README.mdの手順で別途取得する)。
+# data/utkface_sample/ (デモ用の少数サンプル) と data/processed/ (抽出済み顔ベクトル) はサイズが
+# 小さいためGit管理下に置く。
+data/UTKFace/
+data/UTKFace.zip
+
+# ローカルの仮想環境
+.venv*/
+.conda/
+
+# OS/エディタ
+.DS_Store
+.vscode/

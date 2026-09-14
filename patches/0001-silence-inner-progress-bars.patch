@@ -1,0 +1,32 @@
+--- a/utils/inference/video_processing.py
++++ b/utils/inference/video_processing.py
+@@ -122,6 +122,9 @@
+     crop_frames = [ [] for _ in range(target_embeds.shape[0]) ]
+     tfm_array = [ [] for _ in range(target_embeds.shape[0]) ]
+     kps_array = [ [] for _ in range(target_embeds.shape[0]) ]
++
++    def tqdm(x):
++        return x
+     
+     target_embeds = F.normalize(target_embeds)
+     for frame in tqdm(full_frames):
+@@ -179,6 +182,9 @@
+     resized_frs = []
+     present = np.ones(len(crop_frames))
+ 
++    def tqdm(x):
++        return x
++
+     for i, crop_fr in tqdm(enumerate(crop_frames)):
+         try:
+             resized_frs.append(cv2.resize(crop_fr, new_size))
+@@ -203,6 +209,9 @@
+     size = (full_frames[0].shape[0], full_frames[0].shape[1])
+     params = [None for i in range(len(crop_frames))]
+     result_frames = full_frames.copy()
++
++    def tqdm(x):
++        return x
+     
+     for i in tqdm(range(len(full_frames))):
+         if i == len(full_frames):

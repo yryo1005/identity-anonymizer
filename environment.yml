@@ -1,0 +1,34 @@
+# mxnet-cu112 / insightface==0.2.1 / onnxruntime-gpu / torch(CUDA版) の組み合わせは
+# ビルド済みwheelへの依存が強く，pipやuv単体でのCUDA整合性の再現が難しいためcondaで管理する．
+# (README.md「環境構築」を参照)
+name: identity-anonymizer
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - pip
+  - pip:
+      - --extra-index-url https://download.pytorch.org/whl/cu116
+      - torch==1.13.1+cu116
+      - torchvision==0.14.1+cu116
+      - torchaudio==0.13.1+cu116
+      - mxnet-cu112==1.9.1
+      - insightface==0.2.1
+      - onnx==1.15.0
+      - onnxruntime-gpu==1.14.0
+      - opencv-python==4.8.1.78
+      - scikit-image==0.22.0
+      - kornia==0.5.4
+      - numpy
+      - scikit-learn
+      - matplotlib
+      - pandas
+      - psutil
+      - tqdm
+      - ipykernel
+      - jupyter
+      - nbconvert
+      - pytest
+      - -e .
