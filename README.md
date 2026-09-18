@@ -9,6 +9,15 @@
 2種類がある．出力は常にArcFaceの512次元顔ベクトルに固定されるが，入力の形式はモデルごとに
 自由に設計できる(新しいモデルの実装方法は [document.md](document.md) を参照)．
 
+## Colabで試す
+
+ローカルでのセットアップなしに，Google Colab上で匿名化パイプラインを試すことができる．
+[demo.ipynb](demo.ipynb) を開くと，Python環境のセットアップから画像・動画1本ずつの匿名化まで
+一通り実行できる(GPUランタイムが必要．メニューの `ランタイム > ランタイムのタイプを変更` で
+GPUを選択すること)．
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yryo1005/identity-anonymizer/blob/master/demo.ipynb)
+
 ## リポジトリ構成
 
 ```text
@@ -25,6 +34,7 @@ identity-anonymizer/
 ├── notebooks/                # データセット構築・学習・推論・評価用のnotebook
 ├── sample_images/, sample_videos/  # デモ用のサンプルデータ
 ├── tests/                    # pytestによる単体テスト(GPU不要な純粋ロジックが対象)
+├── demo.ipynb                # Colab上で環境構築から匿名化までを一通り試せるデモnotebook
 ├── document.md                # Anonymizerサブクラスの実装ガイド(拡張方法)
 └── README.md                  # 本ファイル(セットアップ・実行方法)
 ```
@@ -92,14 +102,17 @@ pip install -e .
 
 `notebooks/` 配下のnotebookは番号順に依存している．
 
-| notebook | 役割 |
-| :--- | :--- |
-| `01_make_dataset.ipynb` | UTKFaceの顔画像からArcFace顔ベクトルを抽出し，`data/processed/` に保存する |
-| `02_train_vae_anonymizer.ipynb` | `VAEAnonymizer` を学習する |
-| `03_inference_image.ipynb` | 画像1枚に対する匿名化のデモ(ノイズレベルを変えた比較を含む) |
-| `04_inference_video.ipynb` | 動画1本に対する匿名化のデモ．動画全体で同一の匿名化後の顔ベクトルを使用し，フレーム間で人物の見た目が一貫することを確認する |
-| `05_evaluate.ipynb` | UTKFaceに対する年齢/性別/コサイン類似度の定量評価を並列実行する |
-| `06_train_attribute_nn_anonymizer.ipynb` | `AttributeNNAnonymizer`(従来手法2，属性入力型)を学習し，`VAEAnonymizer` との差し替えをデモする |
+| notebook | 役割 | Colab |
+| :--- | :--- | :--- |
+| `01_make_dataset.ipynb` | UTKFaceの顔画像からArcFace顔ベクトルを抽出し，`data/processed/` に保存する | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yryo1005/identity-anonymizer/blob/master/notebooks/01_make_dataset.ipynb) |
+| `02_train_vae_anonymizer.ipynb` | `VAEAnonymizer` を学習する | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yryo1005/identity-anonymizer/blob/master/notebooks/02_train_vae_anonymizer.ipynb) |
+| `03_inference_image.ipynb` | 画像1枚に対する匿名化のデモ(ノイズレベルを変えた比較を含む) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yryo1005/identity-anonymizer/blob/master/notebooks/03_inference_image.ipynb) |
+| `04_inference_video.ipynb` | 動画1本に対する匿名化のデモ．動画全体で同一の匿名化後の顔ベクトルを使用し，フレーム間で人物の見た目が一貫することを確認する | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yryo1005/identity-anonymizer/blob/master/notebooks/04_inference_video.ipynb) |
+| `05_evaluate.ipynb` | UTKFaceに対する年齢/性別/コサイン類似度の定量評価を並列実行する | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yryo1005/identity-anonymizer/blob/master/notebooks/05_evaluate.ipynb) |
+| `06_train_attribute_nn_anonymizer.ipynb` | `AttributeNNAnonymizer`(従来手法2，属性入力型)を学習し，`VAEAnonymizer` との差し替えをデモする | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yryo1005/identity-anonymizer/blob/master/notebooks/06_train_attribute_nn_anonymizer.ipynb) |
+
+いずれのnotebookも，Colab上で開く場合は先に [demo.ipynb](demo.ipynb) と同様の環境構築
+(Python 3.9 + CUDA対応ライブラリのインストール，重みのダウンロード)が必要である．
 
 `04_inference_video.ipynb` で対象とする動画は，`sample_videos/` の中身を差し替える，または
 notebook内のパスの指定を変更することで，任意の動画に変更できる．

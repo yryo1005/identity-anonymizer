@@ -13,8 +13,8 @@ GHOSTは，ソース顔として常にArcFaceの512次元埋め込みを要求�
 
 | 手法 | 入力 | 出力 |
 | :--- | :--- | :--- |
-| 提案手法(`VAEAnonymizer`) | ターゲットのArcFace顔ベクトル $ \mathbf{v} $ (512次元) | 匿名化後の顔ベクトル $ \hat{\mathbf{v}} $ (512次元) |
-| 従来手法2(`AttributeNNAnonymizer`，本ドキュメントの例) | ターゲットの属性 $ I $ (性別・年齢・人種) | 顔ベクトル $ \hat{\mathbf{v}} $ (512次元) |
+| 提案手法(`VAEAnonymizer`) | ターゲットのArcFace顔ベクトル $` \mathbf{v} `$ (512次元) | 匿名化後の顔ベクトル $` \hat{\mathbf{v}} `$ (512次元) |
+| 従来手法2(`AttributeNNAnonymizer`，本ドキュメントの例) | ターゲットの属性 $` I `$ (性別・年齢・人種) | 顔ベクトル $` \hat{\mathbf{v}} `$ (512次元) |
 
 このように入力の型・次元が手法ごとに異なるため，`Anonymizer` は入力の型を `Any` とし，
 各サブクラスが自身の想定する入力を検証する `validate_input` を実装する設計とした．
@@ -117,7 +117,7 @@ def _anonymize(self, x, **kwargs):
 
 ### 4.4 学習
 
-UTKFaceの各顔画像 $ X_n $ とその属性 $ I_n $(ファイル名 `{age}_{gender}_{race}_{日時}.jpg`
+UTKFaceの各顔画像 $` X_n `$ とその属性 $` I_n `$(ファイル名 `{age}_{gender}_{race}_{日時}.jpg`
 から取得)の組を用いて，以下の目的関数を最小化する(`train_attribute_nn_anonymizer`)．
 
 $$
