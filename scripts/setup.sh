@@ -20,7 +20,37 @@ if ! python -c 'import sys; sys.exit(sys.version_info[:2] != (3, 9))' 2>/dev/nul
 fi
 
 echo "== 1. GHOST submoduleの初期化 =="
-git submodule update --init third_party/ghost
+GHOST_DIR="third_party/ghost"
+GHOST_URL="$(git config -f .gitmodules "submodule.${GHOST_DIR}.url")"
+# submoduleが指すコミット．.git が無い場合(zip展開や rm -rf .git 後)は参照先を
+# gitから取得できないためここに固定する．submoduleを更新した場合はここも更新すること．
+GHOST_COMMIT="44e58aad8600ee83ad4c8213aaa9698ccaf66c1c"
+
+if git ls-files --stage -- "${GHOST_DIR}" 2>/dev/null | grep -q '^160000 '; then
+    git submodule update --init "${GHOST_DIR}"
+    if ! git ls-files --stage -- "${GHOST_DIR}" | grep -q "^160000 ${GHOST_COMMIT} "; then
+        echo "警告: submoduleの参照先が scripts/setup.sh の GHOST_COMMIT と一致しません．GHOST_COMMIT を更新してください．"
+    fi
+else
+    # 本リポジトリがGit管理下に無い，またはsubmoduleが未登録の場合は，
+    # GHOSTを単独のリポジトリとして同じコミットで取得する
+    echo "submoduleとして登録されていないため，${GHOST_URL} から直接取得します．"
+    mkdir -p "${GHOST_DIR}"
+    # 削除済みの親 .git/modules を指したままのgitfile(GHOST内のsubmoduleのものを含む)が
+    # 残っているとgitコマンドが失敗するため取り除く
+    find "${GHOST_DIR}" -name .git -type f | while read -r gitfile; do
+        if ! git -C "$(dirname "${gitfile}")" rev-parse --git-dir >/dev/null 2>&1; then
+            rm -f "${gitfile}"
+        fi
+    done
+    if [ ! -d "${GHOST_DIR}/.git" ]; then
+        git -C "${GHOST_DIR}" init -q
+    fi
+    if [ "$(git -C "${GHOST_DIR}" rev-parse -q --verify HEAD 2>/dev/null || true)" != "${GHOST_COMMIT}" ]; then
+        git -C "${GHOST_DIR}" fetch -q --depth 1 "${GHOST_URL}" "${GHOST_COMMIT}"
+        git -C "${GHOST_DIR}" checkout -q -f --detach FETCH_HEAD
+    fi
+fi
 
 echo "== 2. GHOSTへの最小限のパッチ適用 =="
 PATCH_FILE="${REPO_ROOT}/patches/0001-silence-inner-progress-bars.patch"
