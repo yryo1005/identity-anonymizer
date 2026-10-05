@@ -1,0 +1,5 @@
+# 改行コードをLFに固定する(Windows側のgitでcloneしてもCRLFに変換されないようにする)．
+# シェルスクリプトやパッチがCRLFになると scripts/setup.sh が実行できなくなる．
+* text=auto eol=lf
+*.sh text eol=lf
+*.patch text eol=lf
