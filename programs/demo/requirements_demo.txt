@@ -1,0 +1,6 @@
+# 匿名化デモのために，環境 identity-anonymizer-mxcpu へ追加したライブラリ．
+# それ以外のライブラリは environment.yml と programs/ex003_ghost_image_eval/env_mxcpu.sh の記載どおりである．
+fastapi==0.115.6
+uvicorn==0.32.1
+python-multipart==0.0.20
+# 外部コマンドとして ffmpeg / ffprobe が必要である (動画の正規化と H.264 への変換に用いる)．

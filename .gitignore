@@ -31,3 +31,10 @@ data/UTKFace.zip
 # OS/エディタ
 .DS_Store
 .vscode/
+tokens.json
+
+# 実験用に抽出・加工したデータセット(ArcFace顔ベクトルのキャッシュ等)
+datasets/
+
+# ルートに置いたUTKFaceのアーカイブ
+UTKFace.zip

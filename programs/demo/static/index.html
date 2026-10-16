@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>動画の顔匿名化デモ</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="page-header">
+    <h1>動画の顔匿名化デモ</h1>
+    <p class="lead">GHOST と VAE で，動画に映る全員の顔を架空の人物に置き換えます．同じ人物は動画全体で同じ架空の人物になります．</p>
+    <div id="server-status" class="status status-loading">モデルを読み込み中です…</div>
+  </header>
+
+  <main>
+    <section class="card" aria-labelledby="step-input">
+      <h2 id="step-input"><span class="step">1</span>動画を用意する</h2>
+      <p id="camera-message" class="notice hidden" role="status"></p>
+      <div class="tabs" role="tablist">
+        <button class="tab active" role="tab" data-tab="camera" aria-selected="true">カメラで撮影</button>
+        <button class="tab" role="tab" data-tab="file" aria-selected="false">ファイルを選択</button>
+      </div>
+
+      <div class="tab-panel" id="panel-camera">
+        <div class="video-frame"><video id="camera-preview" playsinline muted></video></div>
+        <div class="row">
+          <button id="camera-start" class="secondary">カメラを起動</button>
+          <button id="record-start" disabled>録画開始</button>
+          <button id="record-stop" class="danger" disabled>録画停止</button>
+          <span id="record-timer" class="muted"></span>
+        </div>
+        <p class="hint">まず「カメラを起動」を押し，ブラウザからカメラの使用の許可を求められたら許可してください．録画は最長 <span class="limit-duration">60</span> 秒です．カメラは <code>localhost</code> または HTTPS で開いた場合のみ使えます．</p>
+      </div>
+
+      <div class="tab-panel hidden" id="panel-file">
+        <label id="drop-zone" class="drop-zone">
+          <input id="file-input" type="file" accept="video/*">
+          <span>動画ファイルをここにドロップ，またはクリックして選択</span>
+          <span class="hint">mp4，mov，webm など．<span class="limit-duration">60</span> 秒を超える部分と，高さ <span class="limit-height">720</span> 画素を超える解像度は縮小・切り捨てます．</span>
+        </label>
+      </div>
+
+      <div id="input-ready" class="hidden">
+        <h3>処理する動画</h3>
+        <div class="video-frame"><video id="input-preview" controls playsinline></video></div>
+        <p id="input-name" class="muted"></p>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="step-method">
+      <h2 id="step-method"><span class="step">2</span>匿名化の方式を選ぶ</h2>
+      <div id="method-list" class="method-list"></div>
+      <div id="method-params" class="params"></div>
+      <details class="advanced">
+        <summary>詳細設定</summary>
+        <label class="field">乱数シード <input id="seed" type="number" value="0" min="0" step="1"></label>
+        <label class="checkbox"><input id="fix-norm" type="checkbox"> 顔ベクトルのノルムを実データの平均 (22.4) にそろえる</label>
+      </details>
+    </section>
+
+    <section class="card" aria-labelledby="step-run">
+      <h2 id="step-run"><span class="step">3</span>匿名化する</h2>
+      <div class="row">
+        <button id="run" class="primary" disabled>匿名化を開始</button>
+        <button id="run-again" class="secondary hidden">同じ動画で，選んだ方式で再実行</button>
+      </div>
+      <div id="progress" class="hidden">
+        <div class="progress-bar"><div id="progress-fill"></div></div>
+        <p id="progress-label" class="muted"></p>
+      </div>
+      <p id="error" class="error hidden"></p>
+    </section>
+
+    <section id="result" class="card hidden" aria-labelledby="step-result">
+      <h2 id="step-result"><span class="step">4</span>結果</h2>
+      <div class="compare">
+        <figure>
+          <figcaption>元の動画</figcaption>
+          <div class="video-frame"><video id="result-original" controls playsinline></video></div>
+        </figure>
+        <figure>
+          <figcaption id="result-caption">匿名化後</figcaption>
+          <div class="video-frame"><video id="result-anonymized" controls playsinline></video></div>
+        </figure>
+      </div>
+      <div class="row">
+        <button id="play-both" class="secondary">2つを同時に再生</button>
+        <a id="download" class="button-link" href="#" download>匿名化後の動画をダウンロード</a>
+      </div>
+      <dl id="result-stats" class="stats"></dl>
+    </section>
+
+    <section id="history-card" class="card hidden" aria-labelledby="history-title">
+      <h2 id="history-title">このセッションの実行履歴</h2>
+      <ul id="history" class="history"></ul>
+    </section>
+  </main>
+
+  <footer class="page-footer">
+    <p>「弱・中・強」は，ベクトル空間での再識別率が約 0.9・0.5・0.1 になるパラメータです（report_004 の較正）．生成した顔を元の画像へ貼り戻すと本人の特徴が一部戻るため，実際の再識別率はこれより高くなります．</p>
+  </footer>
+  <script src="/static/app.js"></script>
+</body>
+</html>
